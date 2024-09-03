@@ -31,6 +31,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RNSReloaded.DoubleTime", "R
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RNSReloaded.TextRandomizer", "RNSReloaded.TextRandomizer\RNSReloaded.TextRandomizer.csproj", "{13911799-DF1D-4AD7-B02C-D0B38377F111}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RNSReloaded.TextRandomizerTests", "RNSReloaded.TextRandomizerTests\RNSReloaded.TextRandomizerTests.csproj", "{9841BF0B-27B9-47AA-AA7F-7306FBD59509}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RNSReloaded.Randomizer", "RNSReloaded.Randomizer\RNSReloaded.Randomizer.csproj", "{9B4BA1A2-E397-4BAE-9FE7-7C72BF55F609}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +97,14 @@ Global
 		{13911799-DF1D-4AD7-B02C-D0B38377F111}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{13911799-DF1D-4AD7-B02C-D0B38377F111}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{13911799-DF1D-4AD7-B02C-D0B38377F111}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9841BF0B-27B9-47AA-AA7F-7306FBD59509}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9841BF0B-27B9-47AA-AA7F-7306FBD59509}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9841BF0B-27B9-47AA-AA7F-7306FBD59509}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9841BF0B-27B9-47AA-AA7F-7306FBD59509}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9B4BA1A2-E397-4BAE-9FE7-7C72BF55F609}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9B4BA1A2-E397-4BAE-9FE7-7C72BF55F609}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9B4BA1A2-E397-4BAE-9FE7-7C72BF55F609}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9B4BA1A2-E397-4BAE-9FE7-7C72BF55F609}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
