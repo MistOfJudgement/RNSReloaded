@@ -1,10 +1,10 @@
 {
-  "ModId": "RNSReloaded",
-  "ModName": "RNSReloaded",
-  "ModAuthor": "NotNite",
-  "ModVersion": "1.1.4",
-  "ModDescription": "Helper library for Rabbit and Steel. Can be adapted to general GameMaker.",
-  "ModDll": "RNSReloaded.dll",
+  "ModId": "RNSReloaded.Fullmetal",
+  "ModName": "Fullmetal",
+  "ModAuthor": "MicrowaveBunny",
+  "ModVersion": "1.1.1",
+  "ModDescription": "**Limits online play.**\n\nFor the dedicated.\nEvery encounter and area will now be visited. Gold and EXP are rebalanced.",
+  "ModDll": "RNSReloaded.Fullmetal.dll",
   "ModIcon": "",
   "ModR2RManagedDll32": "",
   "ModR2RManagedDll64": "",
@@ -13,7 +13,7 @@
   "Tags": [],
   "CanUnload": null,
   "HasExports": null,
-  "IsLibrary": true,
+  "IsLibrary": false,
   "ReleaseMetadataFileName": "Sewer56.Update.ReleaseMetadata.json",
   "PluginData": {
     "NuGet": {
@@ -24,15 +24,6 @@
     },
     "GitHubDependencies": {
       "IdToConfigMap": {
-        "Reloaded.Memory.SigScan.ReloadedII": {
-          "Config": {
-            "UserName": "Reloaded-Project",
-            "RepositoryName": "Reloaded.Memory.SigScan",
-            "UseReleaseTag": false,
-            "AssetFileName": "Mod.zip"
-          },
-          "ReleaseMetadataName": "Reloaded.Memory.SigScan.ReloadedII.ReleaseMetadata.json"
-        },
         "reloaded.sharedlib.hooks": {
           "Config": {
             "UserName": "Sewer56",
@@ -41,18 +32,22 @@
             "AssetFileName": "reloaded.sharedlib.hooks.zip"
           },
           "ReleaseMetadataName": "Sewer56.Update.ReleaseMetadata.json"
+        },
+        "Reloaded.Memory.SigScan.ReloadedII": {
+          "Config": {
+            "UserName": "Reloaded-Project",
+            "RepositoryName": "Reloaded.Memory.SigScan",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+          },
+          "ReleaseMetadataName": "Reloaded.Memory.SigScan.ReloadedII.ReleaseMetadata.json"
         }
       }
     }
   },
   "IsUniversalMod": false,
-  "ModDependencies": [
-    "Reloaded.Memory.SigScan.ReloadedII",
-    "reloaded.sharedlib.hooks"
-  ],
+  "ModDependencies": [ "reloaded.sharedlib.hooks", "RNSReloaded" ],
   "OptionalDependencies": [],
-  "SupportedAppId": [
-    "rabbitsteel.exe"
-  ],
+  "SupportedAppId": [ "rabbitsteel.exe" ],
   "ProjectUrl": "https://github.com/NotNite/RNSReloaded"
 }

@@ -6,31 +6,28 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-        <OutputPath>$(RELOADEDIIMODS)/RNSReloaded.FullmoonArsenal</OutputPath>
+        <OutputPath>$(RELOADEDIIMODS)/RNSReloaded.Fullmetal</OutputPath>
         <ImplicitUsings>enable</ImplicitUsings>
         <ReloadedILLink>false</ReloadedILLink>
     </PropertyGroup>
 
     <ItemGroup>
-        <ReloadedLinkRoots Include="RNSReloaded.FullmoonArsenal" />
+        <ReloadedLinkRoots Include="RNSReloaded.Fullmetal"/>
     </ItemGroup>
 
-    <Import Project="../Reloaded.Trimming.targets" />
-    <Import Project="../Reloaded.Checks.targets" />
+    <Import Project="../Reloaded.Trimming.targets"/>
+    <Import Project="../Reloaded.Checks.targets"/>
 
     <ItemGroup>
-        <None Remove="ModConfig.json" />
-        <None Remove="Reloaded.Trimming.targets" />
-        <None Remove="Reloaded.Checks.targets" />
+        <None Remove="ModConfig.json"/>
+        <None Remove="Reloaded.Trimming.targets"/>
+        <None Remove="Reloaded.Checks.targets"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="ModConfig.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
-      <Content Include="ItemMod\**">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </Content>
+        <Content Include="ModConfig.json">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -39,6 +36,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\RNSReloaded.Interfaces\RNSReloaded.Interfaces.csproj" />
+        <ProjectReference Include="..\RNSReloaded.Interfaces\RNSReloaded.Interfaces.csproj"/>
     </ItemGroup>
 </Project>
