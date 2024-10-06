@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace RNSReloaded.Randomizer;
-public class Utils {
+public static class Utils {
+
+    public static 
 
 }
