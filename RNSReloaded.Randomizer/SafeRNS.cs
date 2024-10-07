@@ -8,7 +8,10 @@ namespace RNSReloaded.Randomizer;
 
 public class SafeRNS {
 
-    public static SafeRNS? Instance { get; private set; }
+
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
+    public static SafeRNS Instance { get; private set; }
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.
 
     private readonly IRNSReloaded rns;
     
@@ -58,16 +61,24 @@ public class SafeRNS {
         return this.rns.ExecuteScript(name, &self, &other, arguments);
     }
 
-    public unsafe RValue FindValue(CInstance instance, string name) {
-        return *this.rns.FindValue(&instance, name);
-    }
+    // I think this also breaks
+    //public unsafe RValue FindValue(CInstance instance, string name) {
+    //    return *this.rns.FindValue(&instance, name);
+    //}
 
     public unsafe CRoom GetCurrentRoom() {
         return *this.rns.GetCurrentRoom();
     }
 
-    public unsafe CInstance GetGlobalInstance() {
-        return *this.rns.GetGlobalInstance();
+    //This isn't useful
+    //public unsafe CInstance GetGlobalInstance() {
+    //    return *this.rns.GetGlobalInstance();
+    //}
+
+    public unsafe RValue? GetGlobalValue(string name) {
+        var global = this.rns.GetGlobalInstance();
+        var val = this.rns.FindValue(global, name);
+        return *val;
     }
 
     public unsafe CScript GetScriptData(int id) {

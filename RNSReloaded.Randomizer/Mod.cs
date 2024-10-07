@@ -30,7 +30,7 @@ public unsafe class Mod : IMod {
         this.hooksRef = loader.GetController<IReloadedHooks>();
         this.rnsReloadedRef = loader.GetController<IRNSReloaded>();
         this.logger = loader.GetLogger();
-
+        Utils.logger = this.logger;
         if (this.rnsReloadedRef.TryGetTarget(out var rnsReloaded)) {
             rnsReloaded.OnReady += this.Ready;
         }
@@ -50,6 +50,7 @@ public unsafe class Mod : IMod {
             hook.Activate();
             hook.Enable();
             this.logger.PrintMessage("Enabled Hook", Color.Red);
+            _ = new SafeRNS(rns);
         }
         this.logger.PrintMessage("Done Ready", Color.Red);
 

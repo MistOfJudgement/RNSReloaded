@@ -93,18 +93,29 @@ public unsafe class Randomizer {
     }
     public void LoadLanguageMap(IRNSReloaded rns) {
         //o h my god do it manually, then tidy it later
-        var global = rns.GetGlobalInstance();
-        var langMap = rns.FindValue(global, "languageMap");
-        //something is broken
-        var currentKey = rns.ExecuteCodeFunction("ds_map_find_first", null, null, [*langMap]).GetValueOrDefault();
+        //var global = rns.GetGlobalInstance();
+        //var langMap = rns.FindValue(global, "languageMap");
+        ////something is broken
+        //var currentKey = rns.ExecuteCodeFunction("ds_map_find_first", null, null, [*langMap]).GetValueOrDefault();
 
-        while (currentKey.Type != RValueType.Undefined) {
-            var value = rns.ExecuteCodeFunction("ds_map_find_first", null, null, [*langMap, currentKey]).GetValueOrDefault();
-            if (value.Type == RValueType.String) {
-                this.languageMap[rns.GetString(&currentKey)] = rns.GetString(&value);
-            }
-            currentKey = rns.ExecuteCodeFunction("ds_map_find_next", null, null, [*langMap, currentKey]).GetValueOrDefault();
+        //while (currentKey.Type != RValueType.Undefined) {
+        //    var value = rns.ExecuteCodeFunction("ds_map_find_first", null, null, [*langMap, currentKey]).GetValueOrDefault();
+        //    if (value.Type == RValueType.String) {
+        //        this.languageMap[rns.GetString(&currentKey)] = rns.GetString(&value);
+        //    }
+        //    currentKey = rns.ExecuteCodeFunction("ds_map_find_next", null, null, [*langMap, currentKey]).GetValueOrDefault();
+        //}
+
+        GMLDSMap langMapObj = new("languageMap");
+        var langMapStrings = new Dictionary<string, string>();
+        var langMapData = langMapObj.Collect();
+        foreach (var (key, value) in langMapData) {
+            var stringKey = key.ToString();
+            var stringValue = value.ToString();
+            langMapStrings[stringKey] = stringValue;
         }
+
+        this.languageMap = langMapStrings;
     }
 
     private void LoadAllyData(IRNSReloaded rns) {
@@ -125,6 +136,8 @@ public unsafe class Randomizer {
             };
             this.allyData[id] = allyData;
         }
+
+
     }
 
     private void LoadItemData(IRNSReloaded rns) {
