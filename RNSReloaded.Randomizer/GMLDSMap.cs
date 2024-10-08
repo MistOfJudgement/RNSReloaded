@@ -13,14 +13,14 @@ namespace RNSReloaded.Randomizer {
         public GMLDSMap(RValue id) {
             this.id = id;
         }
-        public GMLDSMap(string name) {
-            var id = Utils.NullCheck(SafeRNS.Instance.GetGlobalValue(name));
+        public unsafe GMLDSMap(string name) {
+            var id = *Utils.GetGlobalValue(name);
             //var id = SafeRNS.Instance.FindValue(SafeRNS.Instance.GetGlobalInstance(), name);
             this.id = id;
         }
 
         public bool Exists() {
-            var val = SafeRNS.Instance.ExecuteGlobalFunction("ds_map_exists", this.id);
+            var val = Utils.ExecuteGlobalFunction("ds_map_exists", this.id);
             if (val.HasValue) {
                 return val.Value.Bool;
             }
@@ -28,44 +28,34 @@ namespace RNSReloaded.Randomizer {
         }
 
         public RValue FindFirst() {
-            var val =  SafeRNS.Instance.ExecuteGlobalFunction("ds_map_find_first", this.id);
+            var val = Utils.ExecuteGlobalFunction("ds_map_find_first", this.id);
             return Utils.NullCheck(val);
         }
 
         public RValue FindNext(RValue fromKey) {
-            var val = SafeRNS.Instance.ExecuteGlobalFunction("ds_map_find_next", this.id, fromKey);
+            var val = Utils.ExecuteGlobalFunction("ds_map_find_next", this.id, fromKey);
             return Utils.NullCheck(val);
         }
 
         public RValue FindValue(RValue key) {
-            var val = SafeRNS.Instance.ExecuteGlobalFunction("ds_map_find_value", this.id, key);
+            var val = Utils.ExecuteGlobalFunction("ds_map_find_value", this.id, key);
             return Utils.NullCheck(val);
         }
 
         //Doesnt work
-        public RValue[] KeysToArray() {
-            var val = Utils.NullCheck(SafeRNS.Instance.ExecuteGlobalFunction("ds_map_keys_to_array", this.id));
-            Utils.Print(val.ToString());
-            var lengthVal = SafeRNS.Instance.ArrayGetLength(val);
-            Utils.Print(lengthVal.ToString());
-            var length = (int) Utils.NullCheck(SafeRNS.Instance.ArrayGetLength(val)).Real;
-            Utils.Print(length.ToString());
-            var output = new RValue[length];
-            for (int i = 0; i < length; i++) {
-                output[i] = Utils.NullCheck(SafeRNS.Instance.ArrayGetEntry(val, i));
-            }
-            return output;
+        public GmlArray KeysToArray() {
+            var val = Utils.ExecuteGlobalFunction("ds_map_keys_to_array", this.id);
+
+            return new GmlArray(Utils.NullCheck(val));
+            
+
+
         }
 
         //Doesn't work
-        public RValue[] ValuesToArray() {
-            var val = Utils.NullCheck(SafeRNS.Instance.ExecuteGlobalFunction("ds_map_values_to_array", this.id));
-            var length = (int) Utils.NullCheck(SafeRNS.Instance.ArrayGetLength(val)).Real;
-            var output = new RValue[length];
-            for (int i = 0; i < length; i++) {
-                output[i] = Utils.NullCheck(SafeRNS.Instance.ArrayGetEntry(val, i));
-            }
-            return output;
+        public GmlArray ValuesToArray() {
+            var val = Utils.NullCheck(Utils.ExecuteGlobalFunction("ds_map_values_to_array", this.id));
+            return new GmlArray (Utils.NullCheck(val));
         }
 
         public Dictionary<RValue, RValue> Collect() {

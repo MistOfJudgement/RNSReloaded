@@ -10,13 +10,13 @@ namespace RNSReloaded.Randomizer;
 public unsafe class GmlArray {
 	private RValue arrayPointer {get; init;}
 	
-	private RValue* arrayValues[];
+	private RValue*[] arrayValues;
 	public GmlArray(RValue val) {
 		if (val.Type != RValueType.Array) {
-			throw new Exception("Not an array")
+            throw new Exception("Not an array");
 		}
 		this.arrayPointer = val;
-
+        this.arrayValues = [];
 		this.load();
 	}
 
@@ -31,10 +31,9 @@ public unsafe class GmlArray {
 
 	public unsafe int length() {
 		var temp = this.arrayPointer;
-		var smth = IRNSReloaded.Instance.ArrayGetLength(&temp);
-		smth = Utils.NullCheck(smth);
+        var smth = Utils.NullCheck(IRNSReloaded.Instance.ArrayGetLength(&temp));
 
-		if(smth.type != RValueType.Real) {
+		if(smth.Type != RValueType.Real) {
 			throw new Exception("Unknown length value returned on array");
 		}
 
@@ -43,14 +42,14 @@ public unsafe class GmlArray {
 	
 	private unsafe RValue* GetPointer(int index) {
 		var temp = this.arrayPointer;
-		return IRNSReloaded.Instance.ArrayGetEntry(&temp, index)
+        return IRNSReloaded.Instance.ArrayGetEntry(&temp, index);
 	}
 
 	public unsafe void load() {
 		var length = this.length();
-		arrayValues = new RValue*[length];
+		this.arrayValues = new RValue*[length];
 		for(int i = 0; i < length; i++) {
-			arrayValues[i] = GetPointer(i);
+			this.arrayValues[i] = this.GetPointer(i);
 		}
 	}
 }

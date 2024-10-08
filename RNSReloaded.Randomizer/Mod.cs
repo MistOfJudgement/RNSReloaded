@@ -20,6 +20,7 @@ public unsafe class Mod : IMod {
     private WeakReference<IRNSReloaded>? rnsReloadedRef;
     private WeakReference<IReloadedHooks>? hooksRef;
     private ILoggerV1 logger;
+    private IHook<ScriptDelegate> langHook;
 
     public void StartEx(IModLoaderV1 loader, IModConfigV1 modConfig) {
         
@@ -44,13 +45,12 @@ public unsafe class Mod : IMod {
     public void Ready() {
         if ((this.hooksRef != null && this.hooksRef.TryGetTarget(out var hooks)) &&
                 (this.rnsReloadedRef != null && this.rnsReloadedRef.TryGetTarget(out var rns))) {
-            var id = rns.ScriptFindId("scr_lang_strings_init");
+            var id = rns.ScriptFindId("scr_stringsprite_load_all");
             var data = rns.GetScriptData(id - 100_000);
-            var hook = hooks.CreateHook(this.LangStringDetour, data->Functions->Function);
-            hook.Activate();
-            hook.Enable();
+            this.langHook = hooks.CreateHook<ScriptDelegate>(this.LangStringDetour, data->Functions->Function);
+            this.langHook.Activate();
+            this.langHook.Enable();
             this.logger.PrintMessage("Enabled Hook", Color.Red);
-            _ = new SafeRNS(rns);
         }
         this.logger.PrintMessage("Done Ready", Color.Red);
 
@@ -65,6 +65,7 @@ public unsafe class Mod : IMod {
             var randomizer = new Randomizer();
             randomizer.Randomize(rns, this.logger);
         }
+        this.langHook.OriginalFunction.Invoke(self, other, ret, argc, argv);
         return ret;
     }
     public void Suspend() {

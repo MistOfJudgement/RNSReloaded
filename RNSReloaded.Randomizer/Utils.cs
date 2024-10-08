@@ -1,5 +1,6 @@
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
+using RNSReloaded.Interfaces;
 using RNSReloaded.Interfaces.Structs;
 using System;
 using System.Collections.Generic;
@@ -26,6 +27,16 @@ public static class Utils {
     public static ILoggerV1 logger = null!;
     public static void Print(string message) {
         logger.PrintMessage(message, Color.Wheat);
+    }
+
+    public static unsafe RValue* GetGlobalValue(string name) {
+        if (name == null) return null;
+        return IRNSReloaded.Instance.FindValue(IRNSReloaded.Instance.GetGlobalInstance(), name);
+    }
+
+    public static unsafe RValue? ExecuteGlobalFunction(string funcName, params RValue[] args) {
+        return IRNSReloaded.Instance.ExecuteCodeFunction(funcName, null, null, args);
+
     }
     
 }

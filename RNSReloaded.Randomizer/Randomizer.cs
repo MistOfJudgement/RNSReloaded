@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Frozen;
+using System.Xml.Linq;
 namespace RNSReloaded.Randomizer;
 
 //At some point I'm going to create a wrapper class over IRNSReloaded to have safe accessor
@@ -28,6 +29,10 @@ public unsafe class Randomizer {
         //3 ints
         // a bunch of id strings for moves and upgrades
         // 4 moves * (1 normal + 5 upgrades)
+
+        public override readonly string ToString() {
+            return $"Ally{{{this.id}, {this.name}, {this.description}}}";
+        }
     }
 
     // the items data array is of the format [ [ItemData: unlocked, ItemData: locked] ]
@@ -90,6 +95,7 @@ public unsafe class Randomizer {
         //reverse the map key to the data source
         logger.PrintMessage($"Loaded {this.languageMap.Count} values into the lang map", Color.Wheat);
         logger.PrintMessage($"Loaded {this.allyData.Count} value into allydata", Color.Wheat);
+        Utils.Print($"Loaded {this.itemData.Count} values into itemData");
     }
     public void LoadLanguageMap(IRNSReloaded rns) {
         //o h my god do it manually, then tidy it later
@@ -118,51 +124,6 @@ public unsafe class Randomizer {
         this.languageMap = langMapStrings;
     }
 
-    private void LoadAllyData(IRNSReloaded rns) {
-        var global = rns.GetGlobalInstance();
-        var allyMap = rns.FindValue(global, "allyData");
-        var lengthRValue = rns.ArrayGetLength(allyMap).GetValueOrDefault();
-        Assert(lengthRValue.Type == RValueType.Real, "Expected a Real type for the length of allyData array.");
-        int length = (int) lengthRValue.Real;
-        for (int i = 0; i < length; i++) {
-            var entry = rns.ArrayGetEntry(allyMap, i);
-            var id = rns.GetString(rns.ArrayGetEntry(entry, 0));
-            var name = rns.GetString(rns.ArrayGetEntry(entry, 1));
-            var desc = rns.GetString(rns.ArrayGetEntry(entry, 2));
-            var allyData = new AllyData() {
-                id = id,
-                name = name,
-                description = desc
-            };
-            this.allyData[id] = allyData;
-        }
-
-
-    }
-
-    private void LoadItemData(IRNSReloaded rns) {
-        var global = rns.GetGlobalInstance();
-        var itemMap = rns.FindValue(global, "itemData");
-        var lengthRValue = rns.ArrayGetLength(itemMap).GetValueOrDefault();
-        Assert(lengthRValue.Type == RValueType.Real, "Expected a Real type for the length of itemData array.");
-        int length = (int) lengthRValue.Real;
-        for (int i = 0; i < length; i++) {
-            var itemData = rns.ArrayGetEntry(itemMap, i);
-            var unlockedItem = rns.ArrayGetEntry(itemData, 0);
-            var id = rns.GetString(rns.ArrayGetEntry(unlockedItem, 0));
-            var name = rns.GetString(rns.ArrayGetEntry(unlockedItem, 2));
-            var desc = rns.GetString(rns.ArrayGetEntry(unlockedItem, 3));
-            var item = new ItemData() {
-                id = id,
-                name = name,
-                description = desc
-            };
-            this.itemData[id] = item;
-
-        }
-
-    }
-
     private void LoadData<T>(IRNSReloaded rns, string dataKey, Action<T, RValue, IRNSReloaded> populateData, Dictionary<string, T> dataDictionary) where T : new() {
         var global = rns.GetGlobalInstance();
         var dataMap = rns.FindValue(global, dataKey);
@@ -179,6 +140,7 @@ public unsafe class Randomizer {
     }
 
     private void PopulateAllyData(AllyData allyData, RValue entry, IRNSReloaded rns) {
+        
         allyData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
         allyData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
         allyData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
