@@ -96,10 +96,15 @@ public unsafe class Randomizer {
         //reverse the map key to the data source
         logger.PrintMessage($"Loaded {this.languageMap.Count} values into the lang map", Color.Wheat);
         logger.PrintMessage($"Loaded {this.allyData.Count} value into allydata", Color.Wheat);
+        
         Utils.Print($"Loaded {this.itemData.Count} values into itemData");
 
         this.populateCompleteMap();
         Utils.Print($"Complete map has {this.completeMap.Count} values");
+
+        //foreach (var kvp in this.completeMap) {
+        //    Utils.Print($"({kvp.Key}, {kvp.Value})");
+        //}
         var toApply = this.randomize();
         this.ApplyChanges(toApply, rns);
 
@@ -133,7 +138,7 @@ public unsafe class Randomizer {
         this.languageMap = langMapStrings;
     }
 
-    private void LoadData<T>(IRNSReloaded rns, string dataKey, Action<int, T, RValue, IRNSReloaded> populateData, Dictionary<string, T> dataDictionary) where T : new() {
+    private void LoadData<T>(IRNSReloaded rns, string dataKey, Func<int, RValue, IRNSReloaded, T> populateData, Dictionary<string, T> dataDictionary) where T : new() {
         var global = rns.GetGlobalInstance();
         var dataMap = rns.FindValue(global, dataKey);
         var lengthRValue = rns.ArrayGetLength(dataMap).GetValueOrDefault();
@@ -141,26 +146,27 @@ public unsafe class Randomizer {
         int length = (int)lengthRValue.Real;
         for (int i = 0; i < length; i++) {
             var entry = rns.ArrayGetEntry(dataMap, i);
-            var id = rns.GetString(rns.ArrayGetEntry(entry, 0));
-            var data = new T();
-            populateData(i, data, *entry, rns);
-            dataDictionary[id] = data;
+            var id = rns.GetString(rns.ArrayGetEntry(entry, 0));            
+            dataDictionary[id] = populateData(i, *entry, rns); ;
         }
     }
 
-    private void PopulateAllyData(int index, AllyData allyData, RValue entry, IRNSReloaded rns) {
-
+    private AllyData PopulateAllyData(int index, RValue entry, IRNSReloaded rns) {
+        AllyData allyData = new();
         allyData.index = index;
         allyData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
         allyData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
         allyData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+        return allyData;
     }
 
-    private void PopulateItemData(int index, ItemData itemData, RValue entry, IRNSReloaded rns) {
+    private ItemData PopulateItemData(int index, RValue entry, IRNSReloaded rns) {
+        ItemData itemData = new();
         var unlockedItem = rns.ArrayGetEntry(&entry, 0);
         itemData.id = rns.GetString(rns.ArrayGetEntry(unlockedItem, 0));
         itemData.name = rns.GetString(rns.ArrayGetEntry(unlockedItem, 2));
         itemData.description = rns.GetString(rns.ArrayGetEntry(unlockedItem, 3));
+        return itemData;
     }
 
     public void LoadAllData(IRNSReloaded rns) {
@@ -215,7 +221,7 @@ public unsafe class Randomizer {
                 prevVal = map.FindValue(tmp);
 
             }
-            Utils.Print($"current val is {prevVal.ToString()}");
+            //Utils.Print($"current val is {prevVal.ToString()}");
         }
         string lastKey = keys.Last();
         //use func to set last
