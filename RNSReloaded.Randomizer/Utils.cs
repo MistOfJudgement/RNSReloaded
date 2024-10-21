@@ -13,13 +13,15 @@ using System.Threading.Tasks;
 namespace RNSReloaded.Randomizer;
 public static class Utils {
 
-    public static RValue Undefined { get {
+    public static RValue Undefined {
+        get {
             RValue val = new();
             val.Type = RValueType.Undefined;
             return val;
         }
     }
 
+    public static Random random { get; } = new Random();
     public static RValue NullCheck(RValue? value) {
         return value ?? throw new NullReferenceException("RValue was null when probably shouldn't");
     }
@@ -38,5 +40,4 @@ public static class Utils {
         return IRNSReloaded.Instance.ExecuteCodeFunction(funcName, null, null, args);
 
     }
-    
 }

@@ -23,6 +23,7 @@ public unsafe class Randomizer {
     }
     
     public struct AllyData {
+        public int index;
         public string id;
         public string name;
         public string description;
@@ -96,7 +97,15 @@ public unsafe class Randomizer {
         logger.PrintMessage($"Loaded {this.languageMap.Count} values into the lang map", Color.Wheat);
         logger.PrintMessage($"Loaded {this.allyData.Count} value into allydata", Color.Wheat);
         Utils.Print($"Loaded {this.itemData.Count} values into itemData");
+
+        this.populateCompleteMap();
+        Utils.Print($"Complete map has {this.completeMap.Count} values");
+        var toApply = this.randomize();
+        this.ApplyChanges(toApply, rns);
+
     }
+
+
     public void LoadLanguageMap(IRNSReloaded rns) {
         //o h my god do it manually, then tidy it later
         //var global = rns.GetGlobalInstance();
@@ -124,7 +133,7 @@ public unsafe class Randomizer {
         this.languageMap = langMapStrings;
     }
 
-    private void LoadData<T>(IRNSReloaded rns, string dataKey, Action<T, RValue, IRNSReloaded> populateData, Dictionary<string, T> dataDictionary) where T : new() {
+    private void LoadData<T>(IRNSReloaded rns, string dataKey, Action<int, T, RValue, IRNSReloaded> populateData, Dictionary<string, T> dataDictionary) where T : new() {
         var global = rns.GetGlobalInstance();
         var dataMap = rns.FindValue(global, dataKey);
         var lengthRValue = rns.ArrayGetLength(dataMap).GetValueOrDefault();
@@ -134,19 +143,20 @@ public unsafe class Randomizer {
             var entry = rns.ArrayGetEntry(dataMap, i);
             var id = rns.GetString(rns.ArrayGetEntry(entry, 0));
             var data = new T();
-            populateData(data, *entry, rns);
+            populateData(i, data, *entry, rns);
             dataDictionary[id] = data;
         }
     }
 
-    private void PopulateAllyData(AllyData allyData, RValue entry, IRNSReloaded rns) {
-        
+    private void PopulateAllyData(int index, AllyData allyData, RValue entry, IRNSReloaded rns) {
+
+        allyData.index = index;
         allyData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
         allyData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
         allyData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
     }
 
-    private void PopulateItemData(ItemData itemData, RValue entry, IRNSReloaded rns) {
+    private void PopulateItemData(int index, ItemData itemData, RValue entry, IRNSReloaded rns) {
         var unlockedItem = rns.ArrayGetEntry(&entry, 0);
         itemData.id = rns.GetString(rns.ArrayGetEntry(unlockedItem, 0));
         itemData.name = rns.GetString(rns.ArrayGetEntry(unlockedItem, 2));
@@ -157,6 +167,69 @@ public unsafe class Randomizer {
         this.LoadData(rns, "allyData", this.PopulateAllyData, this.allyData);
         this.LoadData(rns, "itemData", this.PopulateItemData, this.itemData);
     }
-    
+
+
+    public void populateCompleteMap() {
+        //languageMap
+        foreach (var (key, val) in this.LanguageMap) {
+            this.completeMap[$"languageMap@{key}"] = val;
+        }
+
+        //allyMap
+        foreach (var (key, ally) in this.allyData) {
+            this.completeMap[$"allyData@{ally.index}@0"] = ally.id;
+            this.completeMap[$"allyData@{ally.index}@1"] = ally.name;
+            this.completeMap[$"allyData@{ally.index}@2"] = ally.description;
+        }
+    }
+
+    public Dictionary<string, string> randomize() {
+        var keys = this.completeMap.Keys.ToArray();
+        var values = this.completeMap.Values.ToArray();
+        Utils.random.Shuffle(values);
+        var result = new Dictionary<string, string>();
+
+        for(int i = 0; i < keys.Length; i++) {
+            result[keys[i]] = values[i];
+        }
+
+        return result;
+    }
+    private void ApplyChanges(Dictionary<string, string> toApply, IRNSReloaded rns) {
+        foreach ( var (key, value) in toApply) {
+            Utils.Print($"Making Change {key} to {value}");
+            this.makeChange(key, value, rns);
+        }
+    }
+
+    private unsafe void makeChange(string key, string value, IRNSReloaded rns) {
+        string[] keys = key.Split("@");
+        RValue prevVal = *Utils.GetGlobalValue(keys[0]);
+        for (int i = 1; i < keys.Length-1; i++) {
+            if (int.TryParse(keys[i], out var ind)) {
+                prevVal = *rns.ArrayGetEntry(&prevVal, ind);
+            } else {
+                GMLDSMap map = new(prevVal);
+                RValue tmp = new RValue();
+                rns.CreateString(&tmp, keys[ind]);
+                prevVal = map.FindValue(tmp);
+
+            }
+            Utils.Print($"current val is {prevVal.ToString()}");
+        }
+        string lastKey = keys.Last();
+        //use func to set last
+        if (int.TryParse(lastKey, out var index)) {
+            rns.CreateString(rns.ArrayGetEntry(&prevVal, index), value);
+        } else {
+            GMLDSMap map = new(prevVal);
+            RValue tmp = new RValue();
+            rns.CreateString(&tmp, lastKey);
+            RValue tmpVal = new RValue();
+            rns.CreateString(&tmpVal, value);
+            map.Set(tmp, tmpVal);
+
+        }
+    }
 }
 

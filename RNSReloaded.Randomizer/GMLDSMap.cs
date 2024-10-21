@@ -42,6 +42,10 @@ namespace RNSReloaded.Randomizer {
             return Utils.NullCheck(val);
         }
 
+        public void Set(RValue key, RValue value) {
+            Utils.ExecuteGlobalFunction("ds_map_set", this.id, key, value);
+        }
+
         //Doesnt work
         public GmlArray KeysToArray() {
             var val = Utils.ExecuteGlobalFunction("ds_map_keys_to_array", this.id);
