@@ -189,6 +189,13 @@ public unsafe class Randomizer {
         }
     }
 
+    public void storeStruct<TData>(TData data) where TData : struct {
+        var props = data.GetType().GetFields();
+        foreach (var prop in props) {
+            Utils.Print($"prop : {prop.FieldType}");
+        }
+    }
+
     public Dictionary<string, string> randomize() {
         var keys = this.completeMap.Keys.ToArray();
         var values = this.completeMap.Values.ToArray();
