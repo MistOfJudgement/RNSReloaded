@@ -71,7 +71,11 @@ public unsafe interface IBattlePatterns {
     );
 
     public void colormatch(
-        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, int? radius = null, int? targetMask = null, int? color = null
+        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, int? radius = null, int? targetMask = null, int? color = null, Position? position = null
+    );
+
+    public void colormatch2(
+        CInstance* self, CInstance* other, int? warningDelay = null, int? warningDelay2 = null, int? warnMsg = null, int ? spawnDelay = null, int? radius = null, int? targetMask = null, int? color = null, int? ringNum = null, int? displayNumber = null, Position? position = null
     );
 
     public void cone_direction(
@@ -130,7 +134,7 @@ public unsafe interface IBattlePatterns {
     );
 
     public void gravity_pull_temporary(
-        CInstance* self, CInstance* other, int? spawnDelay = null, int? eraseDelay = null, double? mult = null, int? targetMask = null
+        CInstance* self, CInstance* other, int? spawnDelay = null, int? eraseDelay = null, double? mult = null, int? targetMask = null, Position? position = null
     );
 
     public void heavy(
@@ -154,12 +158,12 @@ public unsafe interface IBattlePatterns {
     );
 
     public void knockback_circle(
-        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, int? kbAmount = null, int? radius = null,
+        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, int? kbAmount = null, int? radius = null, int? kbDuration = null, int? targetMask = null,
         Position? position = null
     );
 
     public void knockback_line(
-        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, int? kbAmount = null, Position? position = null, bool? horizontal = null, int? targetMask = null
+        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, int? kbAmount = null, Position? position = null, bool? horizontal = null, int? kbDuration = null, int? targetMask = null
     );
 
     public void light_crosswave(
@@ -231,6 +235,8 @@ public unsafe interface IBattlePatterns {
 
     public void ray_spinfast(CInstance* self, CInstance* other, int? warningDelay = null, int? warningRadius = null, int? displayNumber = null, int? spawnDelay = null, int? eraseDelay = null, int? width = null, double? angle = null, Position? position = null, double? rot = null, int? numLasers = null);
 
+    public void setgamespeed(CInstance* self, CInstance* other, int? spawnDelay = null, double? timeMult = null);
+
     public void showgroups(
         CInstance* self, CInstance* other, int? spawnDelay = null, int? eraseDelay = null, (int, int, int, int)? groupMasks = null
     );
@@ -263,6 +269,10 @@ public unsafe interface IBattlePatterns {
         CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, double? radius = null, int? targetMask = null
     );
 
+    public void thorns_bin(
+        CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? spawnDelay = null, double? radius = null, (int, int, int, int)? groupMasks = null
+    );
+
     public void thorns_fixed(
         CInstance* self, CInstance* other, int? warningDelay = null, int? warnMsg = null, int? displayNumber = null, int? spawnDelay = null, double? radius = null, Position? position = null, int? targetMask = null
     );
@@ -270,5 +280,9 @@ public unsafe interface IBattlePatterns {
     public void water2_line(
         CInstance* self, CInstance* other, int? warningDelay = null, int? showWarning = null, int? spawnDelay = null, Position? position = null, double? angle = null, double? lineAngle = null,
         int? lineLength = null, int? numBullets = null, int? spd = null
+    );
+
+    public void water_moving_ball(
+        CInstance* self, CInstance* other, int? warningDelay = null, int? spawnDelay = null, Position? position = null, double? speed = null, double? scale = null, double? angle = null
     );
 }

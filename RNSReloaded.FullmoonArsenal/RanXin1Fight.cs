@@ -33,25 +33,15 @@ namespace RNSReloaded.FullmoonArsenal {
 
         private RValue* BulletClearDetour(CInstance* self, CInstance* other, RValue* returnValue, int argc, RValue** argv) {
             if (this.enableConsistentDefensive) {
-                var hbId = this.rnsReloaded.FindValue(self, "hbId");
-                int hotbarId = 4;
-                switch (hbId->Type) {
-                    case RValueType.Real:
-                        hotbarId = (int) hbId->Real;
-                        break;
-                    case RValueType.Int64:
-                        hotbarId = (int) hbId->Int64;
-                        break;
-                    case RValueType.Int32:
-                        hotbarId = hbId->Int32;
-                        break;
-                }
+                var dataId = this.rnsReloaded.FindValue(self, "dataId");
+                var dataMap = this.utils.GetGlobalVar("itemData");
+                var moveName = dataMap->Get((int) this.utils.RValueToLong(dataId))->Get(0)->Get(0)->ToString();
 
                 argv[2]->Real = 450;
                 argv[2]->Type = RValueType.Real;
 
-                // 4 = defensive. Only defender should clear bullets besides that (on special)
-                if (hotbarId != 4) {
+                // Nerf defender's special bullet clear, since otherwise they're a bit too OP
+                if (moveName == "mv_defender_2") {
                     argv[2]->Real = 50;
                 }
             }
@@ -463,7 +453,7 @@ namespace RNSReloaded.FullmoonArsenal {
                 int iteration = (thisBattleTime - 1000) / 12000;
                 this.bp.move_position_synced(self, other,
                     duration: 2000,
-                    position: ((iteration % 2 == 1) ^ isPrimary ? 300 : 1920 - 300, 1080/2)
+                    position: ((iteration % 2 == 1) ^ isPrimary ? 240 : 1920 - 240, 1080/2)
                 );
             }
         }

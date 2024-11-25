@@ -1,20 +1,22 @@
 using Reloaded.Hooks.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
+using RNSReloaded.FuzzyMechPackInterfaces;
 using RNSReloaded.Interfaces;
 using RNSReloaded.Interfaces.Structs;
 using System.Diagnostics.CodeAnalysis;
 
-namespace RNSReloaded.FullmoonArsenal;
+namespace RNSReloaded.JadeLakeside;
 
 public unsafe class Mod : IMod {
     private WeakReference<IRNSReloaded>? rnsReloadedRef;
+    private WeakReference<IFuzzyMechPack>? fuzzyMechRef;
     private WeakReference<IReloadedHooks>? hooksRef;
     private ILoggerV1 logger = null!;
 
     private IHook<ScriptDelegate>? outskirtsHook;
     private IHook<ScriptDelegate>? outskirtsHookN;
-    private IHook<ScriptDelegate>? arsenalHook;
+    private IHook<ScriptDelegate>? lakesideHook;
     private IHook<ScriptDelegate>? pinnacleHook;
     private IHook<ScriptDelegate>? chooseHallsHook;
     private IHook<ScriptDelegate>? healHook;
@@ -91,7 +93,8 @@ public unsafe class Mod : IMod {
     public void Start(IModLoaderV1 loader) {
         this.rnsReloadedRef = loader.GetController<IRNSReloaded>();
         this.hooksRef = loader.GetController<IReloadedHooks>()!;
-        
+        this.fuzzyMechRef = loader.GetController<IFuzzyMechPack>();
+
         this.logger = loader.GetLogger();
         
         this.CopyItemMod();
@@ -106,17 +109,12 @@ public unsafe class Mod : IMod {
             && this.rnsReloadedRef.TryGetTarget(out var rnsReloaded)
             && this.hooksRef != null
             && this.hooksRef.TryGetTarget(out var hooks)
+            && this.fuzzyMechRef != null
+            && this.fuzzyMechRef.TryGetTarget(out var fzbp)
         ) {
             rnsReloaded.LimitOnlinePlay();
             this.fights = [
-                new Rem0Fight  (rnsReloaded, this.logger, hooks),
-                new Rem1Fight (rnsReloaded, this.logger, hooks),
-                new RanXin0Fight (rnsReloaded, this.logger, hooks),
-                new Rem2Fight (rnsReloaded, this.logger, hooks),
-                new Mink0Fight (rnsReloaded, this.logger, hooks),
-                new RanXin1Fight (rnsReloaded, this.logger, hooks),
-                new Mink1Fight (rnsReloaded, this.logger, hooks),
-                new TasshaFight(rnsReloaded, this.logger, hooks)
+                new Maxi0Fight(rnsReloaded, fzbp, this.logger, hooks),
             ];
 
             var outskirtsScript = rnsReloaded.GetScriptData(rnsReloaded.ScriptFindId("scr_hallwaygen_outskirts") - 100000);
@@ -131,11 +129,11 @@ public unsafe class Mod : IMod {
             this.outskirtsHookN.Activate();
             this.outskirtsHookN.Enable();
 
-            var arsenalScript = rnsReloaded.GetScriptData(rnsReloaded.ScriptFindId("scr_hallwaygen_arsenal") - 100000);
-            this.arsenalHook =
-                hooks.CreateHook<ScriptDelegate>(this.ArsenalDetour, arsenalScript->Functions->Function);
-            this.arsenalHook.Activate();
-            this.arsenalHook.Enable();
+            var lakesideScript = rnsReloaded.GetScriptData(rnsReloaded.ScriptFindId("scr_hallwaygen_lakeside") - 100000);
+            this.lakesideHook =
+                hooks.CreateHook<ScriptDelegate>(this.LakesideDetour, lakesideScript->Functions->Function);
+            this.lakesideHook.Activate();
+            this.lakesideHook.Enable();
 
             var pinnacleScript = rnsReloaded.GetScriptData(rnsReloaded.ScriptFindId("scr_hallwaygen_pinnacle") - 100000);
             this.pinnacleHook =
@@ -160,6 +158,8 @@ public unsafe class Mod : IMod {
                 hooks.CreateHook<ScriptDelegate>(this.MoveNextDetour, moveNextScript->Functions->Function);
             this.moveNextHook.Activate();
             this.moveNextHook.Enable();
+        } else {
+            this.logger.PrintMessage("Failed to start Jade Lakeside. Is fuzzy mechanic pack found?", this.logger.ColorRed);
         }
     }
 
@@ -194,18 +194,7 @@ public unsafe class Mod : IMod {
 
     private readonly static int[] ENEMY_LEVELS = [
         0, // Target dummy
-        30, // Chicken Tendies
-        20, // Fieldlimit YEET
-        27, // Boss 1
-        0, // Skipped due to hall transition
-        18, // Troll
-        37, // Mink Electric Windmill
-        18, // Mink rainstorm
-        28, // Boss 2
-        0, // Skipped due to hall transition
-        0, // Pinnacle cutscene
-        10, // Tassha!
-        0, // End
+        5, // ???
     ];
     private RValue* MoveNextDetour(CInstance* self, CInstance* other, RValue* returnValue, int argc, RValue** argv) {
         if (this.IsReady(out var rnsReloaded)) {
@@ -225,7 +214,7 @@ public unsafe class Mod : IMod {
 
             var hallkey = rnsReloaded.FindValue(self, "hallkey");
             rnsReloaded.CreateString(rnsReloaded.ArrayGetEntry(hallkey, 0), "hw_outskirts");
-            rnsReloaded.CreateString(rnsReloaded.ArrayGetEntry(hallkey, 1), "hw_arsenal");
+            rnsReloaded.CreateString(rnsReloaded.ArrayGetEntry(hallkey, 1), "hw_lakeside");
             rnsReloaded.CreateString(rnsReloaded.ArrayGetEntry(hallkey, 2), "hw_pinnacle");
 
             var enemyData = rnsReloaded.utils.GetGlobalVar("enemyData");
@@ -256,20 +245,31 @@ public unsafe class Mod : IMod {
     ) {
         returnValue = this.outskirtsHook!.OriginalFunction(self, other, returnValue, argc, argv);
         if (this.IsReady(out var rnsReloaded)) {
+            // Frogs:
+            // enc_frog_tinkerer0
+            // enc_frog_tinkerer1
+            // enc_frog_tinkerer2
+            // enc_frog_seamstress0
+            // enc_frog_seamstress1
+            // enc_frog_songstress0 (duo?)
+            // enc_frog_songstress1 (duo?)
+            // enc_frog_painter0
+            // enc_frog_idol0 (boss)
             rnsReloaded.utils.setHallway(new List<Notch> {
                 new Notch(NotchType.IntroRoom, "", 0, 0),
-                new Notch(NotchType.Encounter, "enc_wolf_blackear0", 0, 0),
-                new Notch(NotchType.Encounter, "enc_wolf_blackear1", 0, 0),
-                new Notch(NotchType.Boss, "enc_wolf_bluepaw0", 0, Notch.BOSS_FLAG)
+                new Notch(NotchType.Encounter, "enc_frog_tinkerer0", 0, 0),
+                new Notch(NotchType.EndRun, "", 0, 0),
+                //new Notch(NotchType.Encounter, "enc_frog_tinkerer1", 0, 0),
+                //new Notch(NotchType.Boss, "enc_frog_tinkerer2", 0, Notch.BOSS_FLAG)
             }, self, rnsReloaded);
         }
         return returnValue;
     }
 
-    private RValue* ArsenalDetour(
+    private RValue* LakesideDetour(
     CInstance* self, CInstance* other, RValue* returnValue, int argc, RValue** argv
 ) {
-        returnValue = this.arsenalHook!.OriginalFunction(self, other, returnValue, argc, argv);
+        returnValue = this.lakesideHook!.OriginalFunction(self, other, returnValue, argc, argv);
         if (this.IsReady(out var rnsReloaded)) {
             rnsReloaded.utils.setHallway(new List<Notch> {
                 new Notch(NotchType.Encounter, "enc_wolf_blackear2", 0, 0),

@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
 using RNSReloaded.Interfaces.Structs;
 
