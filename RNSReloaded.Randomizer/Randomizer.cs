@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Collections.Frozen;
 using System.Xml.Linq;
+using System.Reflection;
 namespace RNSReloaded.Randomizer;
 
 //At some point I'm going to create a wrapper class over IRNSReloaded to have safe accessor
@@ -23,9 +24,11 @@ public unsafe class Randomizer {
     }
     
     public struct AllyData {
-        public int index;
+        [GMIndex(0)]
         public string id;
+        [GMIndex(1)]
         public string name;
+        [GMIndex(2)]
         public string description;
         //3 ints
         // a bunch of id strings for moves and upgrades
@@ -38,14 +41,24 @@ public unsafe class Randomizer {
 
     // the items data array is of the format [ [ItemData: unlocked, ItemData: locked] ]
     public struct ItemData {
+        [GMIndex(0)]
         public string id;
         int smth; //probably to do with the set but I need to actually check
+        [GMIndex(2)]
         public string name;
+        [GMIndex(3)]
         public string description;
         //14 ints
         // string ? is blank
         //2 ints
     }
+    public struct CombinedItemData {
+        [GMIndex(0)]
+        public ItemData unlocked;
+        [GMIndex(1)]
+        public ItemData? locked;
+    }
+
 
     public struct EnemyData {
         string id;
@@ -75,8 +88,11 @@ public unsafe class Randomizer {
     public FrozenDictionary<string, string> CompleteMap { get => this.completeMap.ToFrozenDictionary(); }
     private Dictionary<string, string> languageMap = [];
     public FrozenDictionary<string, string> LanguageMap { get => this.languageMap.ToFrozenDictionary(); }
-    private Dictionary<string, AllyData> allyData = [];
-    private Dictionary<string, ItemData> itemData = [];
+    private Dictionary<string, AllyData> allyDataMap = [];
+    private List<AllyData> allyData = [];
+
+
+    private List<CombinedItemData> itemData = [];
     public Randomizer() {
 
     }
@@ -105,7 +121,7 @@ public unsafe class Randomizer {
         //foreach (var kvp in this.completeMap) {
         //    Utils.Print($"({kvp.Key}, {kvp.Value})");
         //}
-        var toApply = this.randomize();
+        var toApply = this.randomize(val => val.Length != 0 && !val.Contains("_"));
         this.ApplyChanges(toApply, rns);
 
     }
@@ -138,43 +154,98 @@ public unsafe class Randomizer {
         this.languageMap = langMapStrings;
     }
 
-    private void LoadData<T>(IRNSReloaded rns, string dataKey, Func<int, RValue, IRNSReloaded, T> populateData, Dictionary<string, T> dataDictionary) where T : new() {
+    private void LoadData<T>(IRNSReloaded rns, string dataKey, Func<RValue, IRNSReloaded, T> populateData, List<T> dataArray) where T : new() {
+        var global = rns.GetGlobalInstance();
+        var dataMap = rns.FindValue(global, dataKey);
+
+        Assert(dataMap->Type == RValueType.Array);
+        var lengthRValue = rns.ArrayGetLength(dataMap).GetValueOrDefault();
+        Assert(lengthRValue.Type == RValueType.Real, $"Expected a Real type for the length of {dataKey} array.");
+        int length = (int) lengthRValue.Real;
+        dataArray.Clear();
+        for (int i = 0; i < length; i++) {
+            var entry = rns.ArrayGetEntry(dataMap, i);
+            dataArray.Add(populateData(*entry, rns));
+
+        }
+
+    }
+
+    private void LoadData<T>(IRNSReloaded rns, string dataKey, Func<RValue, IRNSReloaded, T> populateData, Dictionary<string, T> dataDictionary) where T : new() {
         var global = rns.GetGlobalInstance();
         var dataMap = rns.FindValue(global, dataKey);
         var lengthRValue = rns.ArrayGetLength(dataMap).GetValueOrDefault();
         Assert(lengthRValue.Type == RValueType.Real, $"Expected a Real type for the length of {dataKey} array.");
-        int length = (int)lengthRValue.Real;
+        int length = (int) lengthRValue.Real;
         for (int i = 0; i < length; i++) {
             var entry = rns.ArrayGetEntry(dataMap, i);
-            var id = rns.GetString(rns.ArrayGetEntry(entry, 0));            
-            dataDictionary[id] = populateData(i, *entry, rns); ;
+            var id = rns.GetString(rns.ArrayGetEntry(entry, 0));
+            dataDictionary[id] = populateData(*entry, rns); ;
         }
     }
 
-    private AllyData PopulateAllyData(int index, RValue entry, IRNSReloaded rns) {
+    private AllyData PopulateAllyData( RValue entry, IRNSReloaded rns) {
         AllyData allyData = new();
-        allyData.index = index;
+
         allyData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
+
         allyData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
+
         allyData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+
         return allyData;
     }
 
-    private ItemData PopulateItemData(int index, RValue entry, IRNSReloaded rns) {
+    private ItemData PopulateItemData(RValue entry, IRNSReloaded rns) {
         ItemData itemData = new();
-        var unlockedItem = rns.ArrayGetEntry(&entry, 0);
-        itemData.id = rns.GetString(rns.ArrayGetEntry(unlockedItem, 0));
-        itemData.name = rns.GetString(rns.ArrayGetEntry(unlockedItem, 2));
-        itemData.description = rns.GetString(rns.ArrayGetEntry(unlockedItem, 3));
+        itemData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
+        itemData.name = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+        itemData.description = rns.GetString(rns.ArrayGetEntry(&entry, 3));
         return itemData;
     }
-
+    private CombinedItemData PopulateCombinedItemData(RValue entry, IRNSReloaded rns) {
+        CombinedItemData combItem = new();
+        combItem.unlocked = this.PopulateItemData(*rns.ArrayGetEntry(&entry, 0), rns);
+        if (rns.ArrayGetLength(&entry).GetValueOrDefault().Real == 2) {
+            combItem.locked = this.PopulateItemData(*rns.ArrayGetEntry(&entry, 1), rns);
+        } else {
+            combItem.locked = null;
+        }
+        return combItem;
+    }
     public void LoadAllData(IRNSReloaded rns) {
         this.LoadData(rns, "allyData", this.PopulateAllyData, this.allyData);
-        this.LoadData(rns, "itemData", this.PopulateItemData, this.itemData);
+        this.LoadData(rns, "itemData", this.PopulateCombinedItemData, this.itemData);
     }
 
-
+    public void PopulateDataInCompleteMap<T>(string dataName, List<T> toLoad) where T: notnull {
+        for (var i = 0; i < toLoad.Count; i++) {
+            this.PopulateStructInCompleteMap(dataName + "@" + i, toLoad[i]);
+        }
+    }
+    public void PopulateStructInCompleteMap(string prefix, object toPopulate) {
+        if (toPopulate == null) {
+            return;
+        }
+        var type = toPopulate.GetType();
+        foreach (var prop in type.GetFields()) {
+            if (prop.GetCustomAttribute<GMIndexAttribute>() is GMIndexAttribute indexAttr) {
+                var propType = prop.FieldType;
+                var lookup = prefix + "@" + indexAttr.index;
+                if (propType == typeof(string)) {
+                    if (prop.GetValue(toPopulate) is string value) {
+                        this.completeMap[lookup] = value;
+                        Utils.Print(lookup);
+                    }
+                } else if (propType.IsValueType) {
+                    var nestedVal = prop.GetValue(toPopulate);
+                    if (nestedVal != null) {
+                        this.PopulateStructInCompleteMap(lookup, nestedVal);
+                    }
+                }
+            }
+        }
+    }
     public void populateCompleteMap() {
         //languageMap
         foreach (var (key, val) in this.LanguageMap) {
@@ -182,23 +253,21 @@ public unsafe class Randomizer {
         }
 
         //allyMap
-        foreach (var (key, ally) in this.allyData) {
-            this.completeMap[$"allyData@{ally.index}@0"] = ally.id;
-            this.completeMap[$"allyData@{ally.index}@1"] = ally.name;
-            this.completeMap[$"allyData@{ally.index}@2"] = ally.description;
-        }
+        this.PopulateDataInCompleteMap("allyData", this.allyData);
+        this.PopulateDataInCompleteMap("itemData", this.itemData);
+
+
+    }
+    public static Predicate<T> CombinedPredicate<T>(List<Predicate<T>> predicates) {
+        return item => predicates.All(p => p(item));
     }
 
-    public void storeStruct<TData>(TData data) where TData : struct {
-        var props = data.GetType().GetFields();
-        foreach (var prop in props) {
-            Utils.Print($"prop : {prop.FieldType}");
-        }
-    }
-
-    public Dictionary<string, string> randomize() {
-        var keys = this.completeMap.Keys.ToArray();
-        var values = this.completeMap.Values.ToArray();
+    public Dictionary<string, string> randomize(Predicate<string> rule) {
+        //var keys = this.completeMap.Keys.ToArray();
+        //var values = this.completeMap.Values.ToArray();
+        var selected = this.completeMap.Where(kv => rule(kv.Value));
+        var keys = selected.Select(kv => kv.Key).ToArray();
+        var values = selected.Select(kv => kv.Value).ToArray();
         Utils.random.Shuffle(values);
         var result = new Dictionary<string, string>();
 
@@ -210,7 +279,7 @@ public unsafe class Randomizer {
     }
     private void ApplyChanges(Dictionary<string, string> toApply, IRNSReloaded rns) {
         foreach ( var (key, value) in toApply) {
-            Utils.Print($"Making Change {key} to {value}");
+            //Utils.Print($"Making Change {key} to {value}");
             this.makeChange(key, value, rns);
         }
     }
@@ -246,3 +315,11 @@ public unsafe class Randomizer {
     }
 }
 
+internal class GMIndexAttribute : Attribute {
+    public int index {  get; }
+    public GMIndexAttribute() { }
+    public GMIndexAttribute(int index) {
+        this.index = index;
+    }
+
+}
