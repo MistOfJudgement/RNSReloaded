@@ -16,9 +16,13 @@ namespace RNSReloaded.Randomizer;
 //At some point I'm going to create a wrapper class over IRNSReloaded to have safe accessor
 public unsafe class Randomizer {
     public struct HBSInfoData {
+        [GMIndex(0)]
         public string id;
+        [GMIndex(1)]
         public string strId;
+        [GMIndex(2)]
         public string name;
+        [GMIndex(3)]
         public string description;
         // 15 more RValues
     }
@@ -61,26 +65,26 @@ public unsafe class Randomizer {
 
 
     public struct EnemyData {
-        string id;
-        string name;
-        string description;
-        string anim;
+        [GMIndex(0)] string id;
+        [GMIndex(1)] string name;
+        [GMIndex(2)] string description;
+        [GMIndex(3)] string anim;
         //2 large nums, 2 ints, 1 float, 3 ints
     }
 
      struct TrinketData {
-        string id;
-        string name;
-        string description;
-        string unlockCondition;
+        [GMIndex(0)] string id;
+        [GMIndex(1)] string name;
+        [GMIndex(2)] string description;
+        [GMIndex(3)] string unlockCondition;
         // a bunch of stuff
     }
 
     struct NPCInfo {
-        string id;
-        string fullname;
-        string name;
-        string animData;
+        [GMIndex(0)] string id;
+        [GMIndex(1)] string fullname;
+        [GMIndex(2)] string name;
+        [GMIndex(3)] string animData;
         //ints
     }
 
@@ -213,6 +217,8 @@ public unsafe class Randomizer {
         }
         return combItem;
     }
+
+
     public void LoadAllData(IRNSReloaded rns) {
         this.LoadData(rns, "allyData", this.PopulateAllyData, this.allyData);
         this.LoadData(rns, "itemData", this.PopulateCombinedItemData, this.itemData);
@@ -235,7 +241,7 @@ public unsafe class Randomizer {
                 if (propType == typeof(string)) {
                     if (prop.GetValue(toPopulate) is string value) {
                         this.completeMap[lookup] = value;
-                        Utils.Print(lookup);
+                        //Utils.Print(lookup);
                     }
                 } else if (propType.IsValueType) {
                     var nestedVal = prop.GetValue(toPopulate);
