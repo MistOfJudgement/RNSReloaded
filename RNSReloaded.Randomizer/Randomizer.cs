@@ -65,38 +65,38 @@ public unsafe class Randomizer {
 
 
     public struct EnemyData {
-        [GMIndex(0)] string id;
-        [GMIndex(1)] string name;
-        [GMIndex(2)] string description;
-        [GMIndex(3)] string anim;
+        [GMIndex(0)] public string id;
+        [GMIndex(1)] public string name;
+        [GMIndex(2)] public string description;
+        [GMIndex(3)] public string anim;
         //2 large nums, 2 ints, 1 float, 3 ints
     }
 
      struct TrinketData {
-        [GMIndex(0)] string id;
-        [GMIndex(1)] string name;
-        [GMIndex(2)] string description;
-        [GMIndex(3)] string unlockCondition;
+        [GMIndex(0)] public string id;
+        [GMIndex(1)] public string name;
+        [GMIndex(2)] public string description;
+        [GMIndex(3)] public string unlockCondition;
         // a bunch of stuff
     }
 
     struct NPCInfo {
-        [GMIndex(0)] string id;
-        [GMIndex(1)] string fullname;
-        [GMIndex(2)] string name;
-        [GMIndex(3)] string animData;
+        [GMIndex(0)] public string id;
+        [GMIndex(1)] public string fullname;
+        [GMIndex(2)] public string name;
+        [GMIndex(3)] public string animData;
         //ints
     }
 
     private Dictionary<string, string> completeMap = [];
-    public FrozenDictionary<string, string> CompleteMap { get => this.completeMap.ToFrozenDictionary(); }
-    private Dictionary<string, string> languageMap = [];
-    public FrozenDictionary<string, string> LanguageMap { get => this.languageMap.ToFrozenDictionary(); }
-    private Dictionary<string, AllyData> allyDataMap = [];
-    private List<AllyData> allyData = [];
+    private readonly Dictionary<string, string> languageMap = [];
+    private readonly List<AllyData> allyData = [];
+    private readonly List<CombinedItemData> itemData = [];
+    private readonly List<HBSInfoData> hbsInfoData = [];
+    private readonly List<EnemyData> enemyData = [];
+    private readonly List<TrinketData> trinketData = [];
+    private readonly List<NPCInfo> npcInfoData = [];
 
-
-    private List<CombinedItemData> itemData = [];
     public Randomizer() {
 
     }
@@ -147,15 +147,14 @@ public unsafe class Randomizer {
         //}
 
         GMLDSMap langMapObj = new("languageMap");
-        var langMapStrings = new Dictionary<string, string>();
+        this.languageMap.Clear();
         var langMapData = langMapObj.Collect();
         foreach (var (key, value) in langMapData) {
             var stringKey = key.ToString();
             var stringValue = value.ToString();
-            langMapStrings[stringKey] = stringValue;
+            this.languageMap[stringKey] = stringValue;
         }
 
-        this.languageMap = langMapStrings;
     }
 
     private void LoadData<T>(IRNSReloaded rns, string dataKey, Func<RValue, IRNSReloaded, T> populateData, List<T> dataArray) where T : new() {
@@ -190,13 +189,9 @@ public unsafe class Randomizer {
 
     private AllyData PopulateAllyData( RValue entry, IRNSReloaded rns) {
         AllyData allyData = new();
-
         allyData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
-
         allyData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
-
         allyData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
-
         return allyData;
     }
 
@@ -218,10 +213,49 @@ public unsafe class Randomizer {
         return combItem;
     }
 
+    private HBSInfoData PopulateHBSInfoData(RValue entry, IRNSReloaded rns) {
+        HBSInfoData hbsInfoData = new();
+        hbsInfoData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
+        hbsInfoData.strId = rns.GetString(rns.ArrayGetEntry(&entry, 1));
+        hbsInfoData.name = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+        hbsInfoData.description = rns.GetString(rns.ArrayGetEntry(&entry, 3));
+        return hbsInfoData;
+    }
+
+    private EnemyData PopulateEnemyData(RValue entry, IRNSReloaded rns) {
+        EnemyData enemyData = new();
+        enemyData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
+        enemyData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
+        enemyData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+        enemyData.anim = rns.GetString(rns.ArrayGetEntry(&entry, 3));
+        return enemyData;
+    }
+    private TrinketData PopulateTrinketData(RValue entry, IRNSReloaded rns) {
+        TrinketData trinketData = new();
+        trinketData.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
+        trinketData.name = rns.GetString(rns.ArrayGetEntry(&entry, 1));
+        trinketData.description = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+        trinketData.unlockCondition = rns.GetString(rns.ArrayGetEntry(&entry, 3));
+        return trinketData;
+    }
+    private NPCInfo PopulateNPCInfo (RValue entry, IRNSReloaded rns) {
+        NPCInfo npcInfo = new();
+        npcInfo.id = rns.GetString(rns.ArrayGetEntry(&entry, 0));
+        npcInfo.fullname = rns.GetString(rns.ArrayGetEntry(&entry, 1));
+        npcInfo.name = rns.GetString(rns.ArrayGetEntry(&entry, 2));
+        npcInfo.animData = rns.GetString(rns.ArrayGetEntry(&entry, 3));
+        return npcInfo;
+    }
 
     public void LoadAllData(IRNSReloaded rns) {
         this.LoadData(rns, "allyData", this.PopulateAllyData, this.allyData);
         this.LoadData(rns, "itemData", this.PopulateCombinedItemData, this.itemData);
+        this.LoadData(rns, "hbsInfo", this.PopulateHBSInfoData, this.hbsInfoData);
+        this.LoadData(rns, "enemyData", this.PopulateEnemyData, this.enemyData);
+        this.LoadData(rns, "trinketData", this.PopulateTrinketData, this.trinketData);
+        this.LoadData(rns, "npcData", this.PopulateNPCInfo, this.npcInfoData);
+
+
     }
 
     public void PopulateDataInCompleteMap<T>(string dataName, List<T> toLoad) where T: notnull {
@@ -254,14 +288,17 @@ public unsafe class Randomizer {
     }
     public void populateCompleteMap() {
         //languageMap
-        foreach (var (key, val) in this.LanguageMap) {
+        foreach (var (key, val) in this.languageMap) {
             this.completeMap[$"languageMap@{key}"] = val;
         }
 
         //allyMap
         this.PopulateDataInCompleteMap("allyData", this.allyData);
         this.PopulateDataInCompleteMap("itemData", this.itemData);
-
+        this.PopulateDataInCompleteMap("hbsInfo", this.hbsInfoData);
+        this.PopulateDataInCompleteMap("enemyData", this.enemyData);
+        this.PopulateDataInCompleteMap("trinketData", this.trinketData);
+        this.PopulateDataInCompleteMap("npcData", this.npcInfoData);
 
     }
     public static Predicate<T> CombinedPredicate<T>(List<Predicate<T>> predicates) {
