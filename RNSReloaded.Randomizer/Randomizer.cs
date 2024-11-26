@@ -125,7 +125,11 @@ public unsafe class Randomizer {
         //foreach (var kvp in this.completeMap) {
         //    Utils.Print($"({kvp.Key}, {kvp.Value})");
         //}
-        var toApply = this.randomize(val => val.Length != 0 && !val.Contains("_"));
+        var toApply = this.randomize(CombinedPredicate(new List<Predicate<KeyValuePair<string, string>>> {
+            kvp => kvp.Value.Length > 0,
+            kvp => !kvp.Value.Contains("_"),
+            kvp => kvp.Key.StartsWith("hbs")
+        }));
         this.ApplyChanges(toApply, rns);
 
     }
@@ -301,14 +305,14 @@ public unsafe class Randomizer {
         this.PopulateDataInCompleteMap("npcData", this.npcInfoData);
 
     }
-    public static Predicate<T> CombinedPredicate<T>(List<Predicate<T>> predicates) {
+    public static Func<T, bool> CombinedPredicate<T>(List<Predicate<T>> predicates) {
         return item => predicates.All(p => p(item));
     }
 
-    public Dictionary<string, string> randomize(Predicate<string> rule) {
+    public Dictionary<string, string> randomize(Func<KeyValuePair<string, string>, bool> rule) {
         //var keys = this.completeMap.Keys.ToArray();
         //var values = this.completeMap.Values.ToArray();
-        var selected = this.completeMap.Where(kv => rule(kv.Value));
+        var selected = this.completeMap.Where(rule);
         var keys = selected.Select(kv => kv.Key).ToArray();
         var values = selected.Select(kv => kv.Value).ToArray();
         Utils.random.Shuffle(values);
