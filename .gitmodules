@@ -1,0 +1,3 @@
+[submodule "RNSReloaded.Randomizer"]
+	path = RNSReloaded.Randomizer
+	url = https://github.com/MistOfJudgement/RNSReloaded.Randomizer.git
